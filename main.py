@@ -15,7 +15,7 @@ def change_big_table_price(filename, data):
             new_price = change_price(price, line['work'], line['change_type'], line['value'])
             new_price = '{0:,}'.format(new_price).replace(',', ' ')
             stroka.string = new_price
-    with open('proekti.html', 'w', encoding='utf-8') as file:
+    with open('new_pages\\' + filename.split('\\')[-1], 'w', encoding='utf-8') as file:
         file.write(str(soup))
 
 
@@ -27,7 +27,7 @@ def change_big_price(filename, data):
     line = data['strings'][0]
     new_price = change_price(price, line['work'], line['change_type'], line['value'])
     new_price = '{0:,}'.format(new_price).replace(',', ' ')
-    min_price_page.string = f'от {new_price}'
+    min_price_page.string = f' от {new_price} '
     new_div = soup.new_tag("div", **{'class': 'imp_rub'})
     new_a = soup.new_tag("a", **{'class': 'form_order js-form_files'})
     new_a.string = 'Заказать'
@@ -51,9 +51,12 @@ def change_table_price(filename, data):
                 try:
                     line = data['strings'][i]
                     new_price = change_price(price, line['work'], line['change_type'], line['value'])
-                    new_price = '{0:,}'.format(new_price).replace(',', ' ') + ' ₽'
+                    new_price = '{0:,}'.format(new_price).replace(',', ' ')
 
-                    td.string = f'{new_price}'
+                    td.string = f' {new_price} '
+                    rub_span = soup.new_tag("span", **{'class': 'rub'})
+                    rub_span.string = '₽'
+                    td.append(rub_span)
                 except IndexError:
                     pass
             else:
@@ -96,18 +99,16 @@ def change_price(old_price, work, change_type, value):
 
 def convert_price(price):
     import math
-    price_last = price % 10000
-    if price_last < 2500:
-        price_last = (math.floor(price / 5000)) * 5000
-    elif price_last < 7500:
-        price_last = (math.floor(price / 5000)) * 5000
-    else:
-        price_last = (math.ceil(price / 5000)) * 5000
-    print(price, price_last)
+    # price_last = price % 10000
+    # if price_last < 2500:
+    #     price_last = (math.floor(price / 5000)) * 5000
+    # elif price_last < 7500:
+    #     price_last = (math.floor(price / 5000)) * 5000
+    # else:
+    #     price_last = (math.ceil(price / 5000)) * 5000
+    # print(price, price_last)
+    price_last = round(price / 5000) * 5000
     return price_last
-
-
-
 
 
 def menu():
@@ -155,6 +156,10 @@ def menu():
                             })
         else:
             work = action.split(' ')[0]
+            if work == '+':
+                work = 'increase'
+            elif work == '-':
+                work = 'decrease'
             value = int(action.split(' ')[1])
             if len(action.split(' ')) == 3:
                 change_type = 'percent'
@@ -168,9 +173,10 @@ def menu():
     data['strings'] = strings
     return data
 
+
 def main():
     data = menu()
-    path = 'pages'
+    path = data['path']
     html_files = os.listdir(path)
     if os.path.exists('new_pages') is False:
         os.mkdir('new_pages')
